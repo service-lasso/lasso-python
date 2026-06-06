@@ -40,7 +40,6 @@ function run(command, args, options = {}) {
 const artifact = await packagePython(platform, version);
 const verifyRoot = path.join(repoRoot, "output", "verify", version, platform);
 const extractRoot = path.join(verifyRoot, "extract");
-const binaryPath = path.join(extractRoot, "python.exe");
 
 await rm(verifyRoot, { recursive: true, force: true });
 await mkdir(extractRoot, { recursive: true });
@@ -54,11 +53,14 @@ if (
   packageMetadata.upstream?.repo !== "python/cpython" ||
   packageMetadata.upstream?.version !== version ||
   packageMetadata.packagedBy !== "service-lasso/lasso-python" ||
-  packageMetadata.platform !== platform
+  packageMetadata.platform !== platform ||
+  typeof packageMetadata.command !== "string" ||
+  packageMetadata.command.length === 0
 ) {
   throw new Error(`Unexpected package metadata: ${JSON.stringify(packageMetadata)}`);
 }
 
+const binaryPath = path.resolve(extractRoot, packageMetadata.command);
 const pythonVersion = await run(binaryPath, ["--version"], { cwd: extractRoot });
 const observed = `${pythonVersion.stdout}${pythonVersion.stderr}`.trim();
 if (observed !== `Python ${version}`) {

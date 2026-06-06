@@ -11,9 +11,9 @@
     "PYTHONUTF8": "1"
   },
   "globalenv": {
-    "PYTHON": "${SERVICE_ROOT}/python.exe",
-    "PYTHON_HOME": "${SERVICE_ROOT}",
-    "PYTHONPATH": "${SERVICE_ROOT}"
+    "PYTHON": "${SERVICE_ARTIFACT_COMMAND}",
+    "PYTHON_HOME": "${SERVICE_ARTIFACT_ROOT}",
+    "PYTHONPATH": "${SERVICE_ARTIFACT_ROOT}"
   },
   "urls": [
     {
@@ -33,7 +33,31 @@
       "win32": {
         "assetName": "lasso-python-3.11.5-win32.zip",
         "archiveType": "zip",
+        "checksum": {
+          "algorithm": "sha256",
+          "assetName": "SHA256SUMS.txt"
+        },
         "command": ".\\python.exe",
+        "args": ["--version"]
+      },
+      "linux": {
+        "assetName": "lasso-python-3.11.5-linux.tar.gz",
+        "archiveType": "tar.gz",
+        "checksum": {
+          "algorithm": "sha256",
+          "assetName": "SHA256SUMS.txt"
+        },
+        "command": "./bin/python3",
+        "args": ["--version"]
+      },
+      "darwin": {
+        "assetName": "lasso-python-3.11.5-darwin.tar.gz",
+        "archiveType": "tar.gz",
+        "checksum": {
+          "algorithm": "sha256",
+          "assetName": "SHA256SUMS.txt"
+        },
+        "command": "./bin/python3",
         "args": ["--version"]
       }
     }

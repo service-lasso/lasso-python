@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -19,6 +22,14 @@ jobs:
             platform: win32
             python-version: 3.11.5
             artifact: dist/lasso-python-3.11.5-win32.zip
+          - os: ubuntu-latest
+            platform: linux
+            python-version: 3.11.5
+            artifact: dist/lasso-python-3.11.5-linux.tar.gz
+          - os: macos-latest
+            platform: darwin
+            python-version: 3.11.5
+            artifact: dist/lasso-python-3.11.5-darwin.tar.gz
           - os: windows-latest
             platform: win32
             python-version: 3.14.4
@@ -82,11 +93,7 @@ jobs:
         run: |
           set -euo pipefail
           cd release-assets
-          sha256sum \
-            lasso-python-3.11.5-win32.zip \
-            lasso-python-3.14.4-win32.zip \
-            service.json \
-            > SHA256SUMS.txt
+          sha256sum lasso-python-* service.json > SHA256SUMS.txt
 
       - name: Compute release version
         id: version
@@ -104,6 +111,8 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: |
             release-assets/lasso-python-3.11.5-win32.zip
+            release-assets/lasso-python-3.11.5-linux.tar.gz
+            release-assets/lasso-python-3.11.5-darwin.tar.gz
             release-assets/lasso-python-3.14.4-win32.zip
             release-assets/service.json
             release-assets/SHA256SUMS.txt
