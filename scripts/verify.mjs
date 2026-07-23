@@ -8,6 +8,32 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const platform = process.env.TARGET_PLATFORM ?? process.platform;
 const version = process.env.PYTHON_VERSION ?? "3.11.5";
 
+function assertCanonicalManifestHealthchecks(manifest) {
+  if (Object.hasOwn(manifest, "healthcheck")) {
+    throw new Error('service.json must use canonical "healthchecks" instead of "healthcheck".');
+  }
+  if (!Array.isArray(manifest.healthchecks)) {
+    throw new Error('service.json must declare canonical "healthchecks" as an array.');
+  }
+
+  const ids = new Set();
+  for (const check of manifest.healthchecks) {
+    if (!check || typeof check !== "object" || Array.isArray(check)) {
+      throw new Error(`Each healthchecks[] entry must be an object: ${JSON.stringify(check)}`);
+    }
+    if (typeof check.id !== "string" || check.id.length === 0) {
+      throw new Error(`Each healthchecks[] entry must have a stable id: ${JSON.stringify(check)}`);
+    }
+    if (ids.has(check.id)) {
+      throw new Error(`Duplicate healthchecks[] id: ${check.id}`);
+    }
+    ids.add(check.id);
+    if (Object.hasOwn(check, "tcphost") || Object.hasOwn(check, "tcpport")) {
+      throw new Error(`healthchecks[] entry ${check.id} uses deprecated TCP aliases.`);
+    }
+  }
+}
+
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -36,6 +62,9 @@ function run(command, args, options = {}) {
     });
   });
 }
+
+const manifest = JSON.parse(await readFile(path.join(repoRoot, "service.json"), "utf8"));
+assertCanonicalManifestHealthchecks(manifest);
 
 const artifact = await packagePython(platform, version);
 const verifyRoot = path.join(repoRoot, "output", "verify", version, platform);
