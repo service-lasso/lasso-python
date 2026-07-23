@@ -94,6 +94,7 @@ npm test
 The service manifest declares:
 
 - provider role with no managed daemon start requirement
+- canonical `healthchecks[]` with no provider readiness checks
 - native archive acquisition from GitHub releases
 - Python `3.11.5` as the default runtime artifact
 - Windows, Linux, and Darwin artifact entries for the default runtime
