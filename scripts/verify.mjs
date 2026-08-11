@@ -34,6 +34,45 @@ function assertCanonicalManifestHealthchecks(manifest) {
   }
 }
 
+function assertCanonicalManifestEndpoints(manifest) {
+  for (const legacyField of ["ports", "portmapping", "urls"]) {
+    if (Object.hasOwn(manifest, legacyField)) {
+      throw new Error(`service.json must use canonical "endpoints" instead of "${legacyField}".`);
+    }
+  }
+  if (!Array.isArray(manifest.endpoints) || manifest.endpoints.length === 0) {
+    throw new Error('service.json must declare canonical "endpoints" as a non-empty array.');
+  }
+
+  const ids = new Set();
+  for (const endpoint of manifest.endpoints) {
+    if (!endpoint || typeof endpoint !== "object" || Array.isArray(endpoint)) {
+      throw new Error(`Each endpoints[] entry must be an object: ${JSON.stringify(endpoint)}`);
+    }
+    if (typeof endpoint.id !== "string" || !/^[a-z][a-z0-9_]*$/.test(endpoint.id)) {
+      throw new Error(`Each endpoints[] entry must have a selector-safe lower_snake_case id: ${JSON.stringify(endpoint)}`);
+    }
+    if (ids.has(endpoint.id)) {
+      throw new Error(`Duplicate endpoints[] id: ${endpoint.id}`);
+    }
+    ids.add(endpoint.id);
+    if (!["network", "url", "mount", "device"].includes(endpoint.kind)) {
+      throw new Error(`endpoints[] entry ${endpoint.id} has unsupported kind: ${endpoint.kind}`);
+    }
+    for (const variableField of ["env", "globalenv", "export", "exports"]) {
+      if (Object.hasOwn(endpoint, variableField)) {
+        throw new Error(`endpoints[] entry ${endpoint.id} must not declare ${variableField}; variables stay outside endpoints.`);
+      }
+    }
+    if (endpoint.kind === "url" && typeof endpoint.url !== "string" && typeof endpoint.target !== "string") {
+      throw new Error(`url endpoint ${endpoint.id} must declare a url or target.`);
+    }
+    if (endpoint.kind === "network" && (!endpoint.port || typeof endpoint.port !== "object")) {
+      throw new Error(`network endpoint ${endpoint.id} must declare a port object.`);
+    }
+  }
+}
+
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -65,6 +104,7 @@ function run(command, args, options = {}) {
 
 const manifest = JSON.parse(await readFile(path.join(repoRoot, "service.json"), "utf8"));
 assertCanonicalManifestHealthchecks(manifest);
+assertCanonicalManifestEndpoints(manifest);
 
 const artifact = await packagePython(platform, version);
 const verifyRoot = path.join(repoRoot, "output", "verify", version, platform);

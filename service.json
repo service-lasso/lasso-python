@@ -16,11 +16,14 @@
     "PYTHON_HOME": "${SERVICE_ARTIFACT_ROOT}",
     "PYTHONPATH": "${SERVICE_ARTIFACT_ROOT}"
   },
-  "urls": [
+  "endpoints": [
     {
-      "label": "docs",
+      "id": "docs",
+      "kind": "url",
+      "label": "Python Documentation",
       "url": "https://docs.python.org/3/",
-      "kind": "external"
+      "exposure": "public",
+      "primary": true
     }
   ],
   "artifact": {
