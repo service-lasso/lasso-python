@@ -95,8 +95,11 @@ The service manifest declares:
 
 - provider role with no managed daemon start requirement
 - canonical `healthchecks[]` with no provider readiness checks
+- canonical `endpoints[]` with the public Python documentation URL represented as a `url` endpoint
 - native archive acquisition from GitHub releases
 - Python `3.11.5` as the default runtime artifact
 - Windows, Linux, and Darwin artifact entries for the default runtime
 - `PYTHON`, `PYTHON_HOME`, and `PYTHONPATH` provider/global environment hints derived from the installed artifact
 - provider version proof using `python --version`
+
+New authoring should keep legacy `ports`, `portmapping`, and top-level `urls` out of this package manifest. Variables remain in `env` or `globalenv`, and endpoint values should be referenced with selectors such as `${endpoint.docs.url}` when a consumer needs the documentation resource.
